@@ -1,0 +1,21 @@
+{
+  "name": "halogen-interactions",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "spago build",
+    "bundle": "spago bundle --module Main --outfile ./dist/main.js",
+    "serve": "bun --hot run index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "esbuild": "^0.24.0",
+    "purescript": "^0.15.16-4",
+    "spago": "^0.93.41"
+  }
+}

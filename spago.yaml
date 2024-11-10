@@ -1,0 +1,19 @@
+package:
+  name: template-purescript-halogen-webapp
+  dependencies:
+    - aff
+    - arrays
+    - console
+    - effect
+    - halogen
+    - lists
+    - maybe
+    - prelude
+    - transformers
+  test:
+    main: Test.Main
+    dependencies: []
+workspace:
+  packageSet:
+    registry: 61.0.0
+  extraPackages: {}

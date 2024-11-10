@@ -1,15 +1,17 @@
-# halogen-interactions
+# halogen-interaction
 
-To install dependencies:
+## install
+
+dependencies:
+- [bun](https://bun.sh/)
 
 ```bash
 bun install
 ```
 
-To run:
+## examples
 
+simple cli:
 ```bash
-bun run index.ts
+bun spago run -m Halogen.Interaction.Interpretation.Cli
 ```
-
-This project was created using `bun init` in bun v1.1.35. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

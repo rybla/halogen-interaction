@@ -1,4 +1,4 @@
-# template-purescript-halogen-webapp
+# halogen-interactions
 
 To install dependencies:
 

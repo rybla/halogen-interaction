@@ -1,7 +1,8 @@
 package:
-  name: template-purescript-halogen-webapp
+  name: halogen-interactions
   dependencies:
     - aff
+    - aff-promise
     - arrays
     - console
     - effect

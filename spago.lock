@@ -1,11 +1,12 @@
 {
   "workspace": {
     "packages": {
-      "template-purescript-halogen-webapp": {
+      "halogen-interactions": {
         "path": "./",
         "core": {
           "dependencies": [
             "aff",
+            "aff-promise",
             "arrays",
             "console",
             "effect",
@@ -17,6 +18,7 @@
           ],
           "build_plan": [
             "aff",
+            "aff-promise",
             "arrays",
             "avar",
             "bifunctors",
@@ -634,6 +636,15 @@
         "tailrec",
         "transformers",
         "unsafe-coerce"
+      ]
+    },
+    "aff-promise": {
+      "type": "registry",
+      "version": "4.0.0",
+      "integrity": "sha256-Kq5EupbUpXeUXx4JqGQE7/RTTz/H6idzWhsocwlEFhM=",
+      "dependencies": [
+        "aff",
+        "foreign"
       ]
     },
     "arrays": {

@@ -11,7 +11,7 @@ import Data.FunctorWithIndex (mapWithIndex)
 import Data.List (List, (:))
 import Data.Maybe (fromMaybe')
 import Effect (Effect)
-import Effect.Aff (Aff)
+import Effect.Aff (Aff, never)
 import Effect.Aff.Class (liftAff)
 import Halogen (Component, HalogenM, HalogenQ, Slot, ComponentHTML, defaultEval, liftEffect, mkComponent, mkEval, unComponent)
 import Halogen as H
@@ -22,8 +22,8 @@ import Halogen.HTML.Properties as HP
 import Halogen.Interaction.Interaction (InteractionF(..), InteractionT(..), runInteractionT)
 import Halogen.Query.HalogenM (mapOutput)
 import Halogen.VDom.Driver as HVD
-import Partial.Unsafe (unsafeCrashWith)
 import Type.Prelude (Proxy(..))
+import Utility (bug)
 import Web.HTML.HTMLInputElement as HTMLInputElement
 
 --------------------------------------------------------------------------------
@@ -60,14 +60,14 @@ run = runInteractionT liftAff case _ of
 
       eval = mkEval defaultEval
         { handleAction = const do
-            inputElement <- H.getHTMLElementRef inputRefLabel <#> fromMaybe' \_ -> unsafeCrashWith "impossible"
-            str <- inputElement # HTMLInputElement.fromHTMLElement # fromMaybe' (\_ -> unsafeCrashWith "impossible") # HTMLInputElement.value # liftEffect
-            H.raise $ WidgetOutput $ liftAff $ (unsafeCrashWith "k") str
+            inputElement <- H.getHTMLElementRef inputRefLabel <#> fromMaybe' \_ -> bug "impossible, since input must exist"
+            str <- inputElement # HTMLInputElement.fromHTMLElement # fromMaybe' (\_ -> bug "impossible, since input must be an input element") # HTMLInputElement.value # liftEffect
+            H.raise $ WidgetOutput $ liftAff $ k str
         }
 
       render {} =
         HH.div
-          []
+          [ HP.classes [ HH.ClassName "widget" ] ]
           [ HH.div [] [ HH.text msg ]
           , HH.div [] [ HH.input [ HP.ref inputRefLabel ] ]
           , HH.div []
@@ -82,14 +82,23 @@ run = runInteractionT liftAff case _ of
     component :: WidgetComponent _
     component = WidgetComponent $ mkComponent { initialState, eval, render }
       where
-      initialState = unsafeCrashWith "TODO"
-      eval = unsafeCrashWith "TODO"
-      render = unsafeCrashWith "TODO"
+      initialState {} = {}
+
+      eval = mkEval defaultEval
+        { initialize = pure unit
+        , handleAction = const do
+            H.raise $ WidgetOutput $ liftAff $ k unit
+        }
+
+      render {} =
+        HH.div
+          [ HP.classes [ HH.ClassName "widget" ] ]
+          [ HH.div [] [ HH.text msg ] ]
 
 spawnWidget :: forall a. WidgetComponent a -> M a
 spawnWidget widgetComponent = do
-  -- modify_ \st -> st { widgetComponents = widgetComponent : st.widgetComponents }
-  unsafeCrashWith "TODO"
+  modify_ \st -> st { widgetComponents = mkExists widgetComponent : st.widgetComponents }
+  liftAff never
 
 --------------------------------------------------------------------------------
 -- widget
@@ -157,7 +166,6 @@ appComponent = mkComponent { initialState, eval, render }
     }
   eval = mkEval defaultEval
     { handleAction = case _ of
-        -- WidgetOutput_AppAction (WidgetOutput wo) -> wo # run
         WidgetOutput_AppAction ewo -> ewo # runExists \(WidgetOutput wo) -> run wo >>= \_ -> pure unit
         Noop_AppAction -> pure unit
     }

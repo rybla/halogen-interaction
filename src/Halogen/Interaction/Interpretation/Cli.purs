@@ -1,6 +1,5 @@
 module Halogen.Interaction.Interpretation.Cli where
 
-import Halogen.Interaction.Interaction (InteractionF(..), InteractionT(..), runInteractionT)
 import Prelude
 
 import Control.Monad.Free (liftF)
@@ -8,6 +7,7 @@ import Control.Promise (Promise)
 import Control.Promise as Promise
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
+import Halogen.Interaction.Interaction (InteractionF(..), InteractionT(..), runInteractionT)
 
 --------------------------------------------------------------------------------
 -- F

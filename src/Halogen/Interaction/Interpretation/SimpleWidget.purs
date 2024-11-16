@@ -5,6 +5,7 @@ import Prelude
 import Control.Monad.Free (liftF)
 import Control.Monad.State (modify_)
 import Data.Array as Array
+import Data.Exists (Exists, mkExists, runExists)
 import Data.Foldable (fold)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.List (List, (:))
@@ -12,13 +13,14 @@ import Data.Maybe (fromMaybe')
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Halogen (Component, HalogenM, Slot, defaultEval, liftEffect, mkComponent, mkEval)
+import Halogen (Component, HalogenM, HalogenQ, Slot, ComponentHTML, defaultEval, liftEffect, mkComponent, mkEval, unComponent)
 import Halogen as H
 import Halogen.Aff as HA
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.Interaction.Interaction (InteractionF(..), InteractionT(..), runInteractionT)
+import Halogen.Query.HalogenM (mapOutput)
 import Halogen.VDom.Driver as HVD
 import Partial.Unsafe (unsafeCrashWith)
 import Type.Prelude (Proxy(..))
@@ -49,8 +51,8 @@ run :: forall a. InteractionT F Aff a -> M a
 run = runInteractionT liftAff case _ of
   Prompt msg k -> spawnWidget component
     where
-    component :: WidgetComponent
-    component = mkComponent { initialState, eval, render }
+    component :: WidgetComponent _
+    component = WidgetComponent $ mkComponent { initialState, eval, render }
       where
       inputRefLabel = H.RefLabel "input"
 
@@ -77,33 +79,47 @@ run = runInteractionT liftAff case _ of
 
   Print msg k -> spawnWidget component
     where
-    component :: WidgetComponent
-    component = mkComponent { initialState, eval, render }
+    component :: WidgetComponent _
+    component = WidgetComponent $ mkComponent { initialState, eval, render }
       where
       initialState = unsafeCrashWith "TODO"
       eval = unsafeCrashWith "TODO"
       render = unsafeCrashWith "TODO"
 
-spawnWidget :: forall a. WidgetComponent -> M a
+spawnWidget :: forall a. WidgetComponent a -> M a
 spawnWidget widgetComponent = do
-  modify_ \st -> st { widgetComponents = widgetComponent : st.widgetComponents }
+  -- modify_ \st -> st { widgetComponents = widgetComponent : st.widgetComponents }
   unsafeCrashWith "TODO"
 
 --------------------------------------------------------------------------------
 -- widget
 --------------------------------------------------------------------------------
 
-type WidgetComponent = Component WidgetQuery WidgetInput WidgetOutput Aff
+data WidgetComponent a = WidgetComponent (Component WidgetQuery WidgetInput (WidgetOutput a) Aff)
+
+mapExistsWidgetOutput :: forall a. WidgetComponent a -> Component WidgetQuery WidgetInput (Exists WidgetOutput) Aff
+mapExistsWidgetOutput (WidgetComponent wc) = wc # unComponent f
+  where
+  f
+    :: forall state action slots1
+     . { eval :: forall x. HalogenQ WidgetQuery action WidgetInput x -> HalogenM state action slots1 (WidgetOutput a) Aff x
+       , initialState :: WidgetInput -> state
+       , render :: state -> ComponentHTML action slots1 Aff
+       }
+    -> _
+  f { initialState, eval, render } =
+    let
+      eval' :: forall y. HalogenQ WidgetQuery action _ y -> HalogenM state action slots1 (Exists WidgetOutput) Aff y
+      eval' q = eval q # mapOutput mkExists
+    in
+      mkComponent { initialState, eval: eval', render }
 
 data WidgetQuery :: forall k. k -> Type
 data WidgetQuery a
 
 type WidgetInput = {}
 
-newtype WidgetOutput = WidgetOutput (InteractionT F Aff Unit)
-
-unwrapWidgetOutput :: WidgetOutput -> InteractionT F Aff Unit
-unwrapWidgetOutput (WidgetOutput i) = i
+newtype WidgetOutput a = WidgetOutput (InteractionT F Aff a)
 
 type WidgetSlotId = Unit
 
@@ -122,13 +138,13 @@ type AppOutput = {}
 
 type AppState =
   { start :: InteractionT F Aff Unit
-  , widgetComponents :: List WidgetComponent
+  , widgetComponents :: List (Exists WidgetComponent)
   }
 
-type AppSlots = (widget :: Slot WidgetQuery WidgetOutput WidgetSlotId)
+type AppSlots = (widget :: Slot WidgetQuery (Exists WidgetOutput) WidgetSlotId)
 
 data AppAction
-  = WidgetOutput_AppAction WidgetOutput
+  = WidgetOutput_AppAction (Exists WidgetOutput)
   | Noop_AppAction
 
 appComponent :: Component AppQuery AppInput AppOutput Aff
@@ -141,14 +157,15 @@ appComponent = mkComponent { initialState, eval, render }
     }
   eval = mkEval defaultEval
     { handleAction = case _ of
-        WidgetOutput_AppAction (WidgetOutput wo) -> wo # run
+        -- WidgetOutput_AppAction (WidgetOutput wo) -> wo # run
+        WidgetOutput_AppAction ewo -> ewo # runExists \(WidgetOutput wo) -> run wo >>= \_ -> pure unit
         Noop_AppAction -> pure unit
     }
   render { widgetComponents } =
     HH.div
       []
-      ( [ widgetComponents # Array.fromFoldable # mapWithIndex \i widgetComponent ->
-            HH.slot (Proxy :: Proxy "widget") unit widgetComponent {}
+      ( [ widgetComponents # Array.fromFoldable # mapWithIndex \i ewc -> ewc # runExists \wc ->
+            HH.slot (Proxy :: Proxy "widget") unit (wc # mapExistsWidgetOutput) {}
               if i == 0 then
                 WidgetOutput_AppAction
               else

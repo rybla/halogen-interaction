@@ -2,17 +2,20 @@ module Halogen.Interaction.Interpretation.SimpleWidget where
 
 import Prelude
 
-import Control.Monad.Free (liftF)
-import Control.Monad.State (modify_)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Free (Free, liftF, runFreeM)
+import Control.Monad.State (get, modify_)
 import Data.Array as Array
 import Data.Exists (Exists, mkExists, runExists)
 import Data.Foldable (fold)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.List (List, (:))
-import Data.Maybe (fromMaybe')
+import Data.Maybe (Maybe, fromMaybe')
+import Data.Newtype as Newtype
 import Effect (Effect)
 import Effect.Aff (Aff, never)
 import Effect.Aff.Class (liftAff)
+import Effect.Class.Console as Console
 import Halogen (Component, HalogenM, HalogenQ, Slot, ComponentHTML, defaultEval, liftEffect, mkComponent, mkEval, unComponent)
 import Halogen as H
 import Halogen.Aff as HA
@@ -23,7 +26,7 @@ import Halogen.Interaction.Interaction (InteractionF(..), InteractionT(..), runI
 import Halogen.Query.HalogenM (mapOutput)
 import Halogen.VDom.Driver as HVD
 import Type.Prelude (Proxy(..))
-import Utility (bug)
+import Utility (bug, todo)
 import Web.HTML.HTMLInputElement as HTMLInputElement
 
 --------------------------------------------------------------------------------
@@ -34,6 +37,8 @@ data F :: (Type -> Type) -> Type -> Type
 data F m a
   = Prompt String (String -> m a)
   | Print String (Unit -> m a)
+
+derive instance Functor m => Functor (F m)
 
 prompt :: forall m. Applicative m => String -> InteractionT F m String
 prompt msg = InteractionT $ liftF $ Interact $ Prompt msg pure
@@ -47,9 +52,10 @@ print msg = InteractionT $ liftF $ Interact $ Print msg pure
 
 type M = HalogenM AppState AppAction AppSlots AppOutput Aff
 
-run :: forall a. InteractionT F Aff a -> M a
-run = runInteractionT liftAff case _ of
-  Prompt msg k -> spawnWidget component
+run :: InteractionT F Aff Unit -> M Unit
+run (InteractionT ff) = (ff :: Free (InteractionF F Aff) Unit) # runFreeM case _ of
+  Lift ma -> ma # lift
+  Interact (Prompt msg k) -> spawnWidget component >>= pure >>> pure
     where
     component :: WidgetComponent _
     component = WidgetComponent $ mkComponent { initialState, eval, render }
@@ -76,8 +82,7 @@ run = runInteractionT liftAff case _ of
                   [ HH.text "submit" ]
               ]
           ]
-
-  Print msg k -> spawnWidget component
+  Interact (Print msg k) -> spawnWidget component >>= pure >>> pure
     where
     component :: WidgetComponent _
     component = WidgetComponent $ mkComponent { initialState, eval, render }
@@ -95,10 +100,9 @@ run = runInteractionT liftAff case _ of
           [ HP.classes [ HH.ClassName "widget" ] ]
           [ HH.div [] [ HH.text msg ] ]
 
-spawnWidget :: forall a. WidgetComponent a -> M a
+spawnWidget :: forall a. WidgetComponent a -> M Unit
 spawnWidget widgetComponent = do
   modify_ \st -> st { widgetComponents = mkExists widgetComponent : st.widgetComponents }
-  liftAff never
 
 --------------------------------------------------------------------------------
 -- widget
@@ -153,7 +157,8 @@ type AppState =
 type AppSlots = (widget :: Slot WidgetQuery (Exists WidgetOutput) WidgetSlotId)
 
 data AppAction
-  = WidgetOutput_AppAction (Exists WidgetOutput)
+  = Initialize_AppAction
+  | WidgetOutput_AppAction (Exists WidgetOutput)
   | Noop_AppAction
 
 appComponent :: Component AppQuery AppInput AppOutput Aff
@@ -165,9 +170,17 @@ appComponent = mkComponent { initialState, eval, render }
     , widgetComponents: mempty
     }
   eval = mkEval defaultEval
-    { handleAction = case _ of
-        WidgetOutput_AppAction ewo -> ewo # runExists \(WidgetOutput wo) -> run wo >>= \_ -> pure unit
-        Noop_AppAction -> pure unit
+    { initialize = pure Initialize_AppAction
+    , handleAction = case _ of
+        Initialize_AppAction -> do
+          { start } <- get
+          start # run
+        WidgetOutput_AppAction ewo -> do
+          Console.log "appComponent.eval.handleAction.WidgetOutput_AppAction"
+          ewo # runExists \(WidgetOutput wo) -> run wo >>= \_ -> pure unit
+        Noop_AppAction -> do
+          Console.log "appComponent.eval.handleAction.Noop_AppAction"
+          pure unit
     }
   render { widgetComponents } =
     HH.div

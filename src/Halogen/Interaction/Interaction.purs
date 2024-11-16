@@ -80,3 +80,15 @@ runInteractionT k_lift k_interact m = m # Newtype.unwrap # Free.foldFree case _ 
   Lift ma -> k_lift ma
   Interact f -> k_interact f
 
+-- runInteractionT_Unit
+--   :: forall f m n
+--    . Functor (f m)
+--   => Functor m
+--   => MonadRec n
+--   => (m (Free (InteractionF f m) Unit) -> n (Free (InteractionF f m) Unit))
+--   -> _
+--   -> InteractionT f m Unit
+--   -> n Unit
+-- runInteractionT_Unit f1 f2 (InteractionT m) = m # Free.runFreeM case _ of
+--   Lift ma -> f1 ma
+--   Interact f -> ?a

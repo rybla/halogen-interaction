@@ -5,7 +5,8 @@
   "scripts": {
     "build": "spago build",
     "bundle": "spago bundle --module Main --outfile ./dist/main.js",
-    "serve": "bun --hot run index.ts"
+    "serve": "bun --hot run index.ts",
+    "example.cli": "bun spago run -m Halogen.Interaction.Interpretation.Cli"
   },
   "devDependencies": {
     "@types/bun": "latest"

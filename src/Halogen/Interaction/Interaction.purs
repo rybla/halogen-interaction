@@ -75,7 +75,7 @@ runInteractionT
   => (forall b. m b -> m' b)
   -> (forall b. f m b -> m' b)
   -> InteractionT f m a
-  -> m' a -- m a
+  -> m' a
 runInteractionT k_lift k_interact m = m # Newtype.unwrap # Free.foldFree case _ of
   Lift ma -> k_lift ma
   Interact f -> k_interact f

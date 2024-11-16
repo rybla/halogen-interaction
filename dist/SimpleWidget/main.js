@@ -297,6 +297,35 @@
     return EQ2;
   }();
 
+  // output/Data.Semiring/foreign.js
+  var intAdd = function(x) {
+    return function(y) {
+      return x + y | 0;
+    };
+  };
+  var intMul = function(x) {
+    return function(y) {
+      return x * y | 0;
+    };
+  };
+
+  // output/Data.Semiring/index.js
+  var zero = function(dict) {
+    return dict.zero;
+  };
+  var semiringInt = {
+    add: intAdd,
+    zero: 0,
+    mul: intMul,
+    one: 1
+  };
+  var one = function(dict) {
+    return dict.one;
+  };
+  var add = function(dict) {
+    return dict.add;
+  };
+
   // output/Data.Ord/index.js
   var ordString = /* @__PURE__ */ function() {
     return {
@@ -316,6 +345,47 @@
   }();
   var compare = function(dict) {
     return dict.compare;
+  };
+
+  // output/Data.Show/foreign.js
+  var showStringImpl = function(s) {
+    var l = s.length;
+    return '"' + s.replace(
+      /[\0-\x1F\x7F"\\]/g,
+      // eslint-disable-line no-control-regex
+      function(c, i2) {
+        switch (c) {
+          case '"':
+          case "\\":
+            return "\\" + c;
+          case "\x07":
+            return "\\a";
+          case "\b":
+            return "\\b";
+          case "\f":
+            return "\\f";
+          case "\n":
+            return "\\n";
+          case "\r":
+            return "\\r";
+          case "	":
+            return "\\t";
+          case "\v":
+            return "\\v";
+        }
+        var k = i2 + 1;
+        var empty7 = k < l && s[k] >= "0" && s[k] <= "9" ? "\\&" : "";
+        return "\\" + c.charCodeAt(0).toString(10) + empty7;
+      }
+    ) + '"';
+  };
+
+  // output/Data.Show/index.js
+  var showString = {
+    show: showStringImpl
+  };
+  var show = function(dict) {
+    return dict.show;
   };
 
   // output/Data.Maybe/index.js
@@ -901,6 +971,18 @@
   };
   var foldl = function(dict) {
     return dict.foldl;
+  };
+  var length = function(dictFoldable) {
+    var foldl2 = foldl(dictFoldable);
+    return function(dictSemiring) {
+      var add1 = add(dictSemiring);
+      var one2 = one(dictSemiring);
+      return foldl2(function(c) {
+        return function(v) {
+          return add1(one2)(c);
+        };
+      })(zero(dictSemiring));
+    };
   };
   var foldableMaybe = {
     foldr: function(v) {
@@ -1661,6 +1743,14 @@
   // output/Control.Monad.State.Class/index.js
   var state = function(dict) {
     return dict.state;
+  };
+  var put = function(dictMonadState) {
+    var state1 = state(dictMonadState);
+    return function(s) {
+      return state1(function(v) {
+        return new Tuple(unit, s);
+      });
+    };
   };
   var modify_2 = function(dictMonadState) {
     var state1 = state(dictMonadState);
@@ -4717,6 +4807,7 @@
     throw new Error("Failed pattern match at Halogen.VDom.DOM.Prop (line 182, column 16 - line 187, column 16): " + [v.constructor.name]);
   };
   var propFromString = unsafeCoerce2;
+  var propFromBoolean = unsafeCoerce2;
   var buildProp = function(emit) {
     return function(el) {
       var removeProp = function(prevEvents) {
@@ -4905,6 +4996,9 @@
   };
   var isPropString = {
     toPropValue: propFromString
+  };
+  var isPropBoolean = {
+    toPropValue: propFromBoolean
   };
   var handler = /* @__PURE__ */ function() {
     return Handler.create;
@@ -5637,7 +5731,9 @@
   var prop2 = function(dictIsProp) {
     return prop(dictIsProp);
   };
+  var prop1 = /* @__PURE__ */ prop2(isPropBoolean);
   var prop22 = /* @__PURE__ */ prop2(isPropString);
+  var readOnly3 = /* @__PURE__ */ prop1("readOnly");
   var classes = /* @__PURE__ */ function() {
     var $32 = prop22("className");
     var $33 = joinWith(" ");
@@ -6671,28 +6767,34 @@
   var map18 = /* @__PURE__ */ map(functorFn);
   var modify_3 = /* @__PURE__ */ modify_2(monadStateHalogenM);
   var lift3 = /* @__PURE__ */ lift(monadTransHalogenM)(monadAff);
+  var fold2 = /* @__PURE__ */ fold(foldableArray)(monoidArray);
+  var pure10 = /* @__PURE__ */ pure(applicativeMaybe);
+  var put2 = /* @__PURE__ */ put(monadStateHalogenM);
   var bind6 = /* @__PURE__ */ bind(bindHalogenM);
   var mapFlipped2 = /* @__PURE__ */ mapFlipped(functorHalogenM);
   var monadEffectHalogenM2 = /* @__PURE__ */ monadEffectHalogenM(monadEffectAff);
   var liftEffect7 = /* @__PURE__ */ liftEffect(monadEffectHalogenM2);
-  var pure10 = /* @__PURE__ */ pure(freeApplicative);
-  var pure13 = /* @__PURE__ */ pure(applicativeHalogenM);
-  var pure23 = /* @__PURE__ */ pure(applicativeMaybe);
+  var discard5 = /* @__PURE__ */ discard(discardUnit);
+  var discard12 = /* @__PURE__ */ discard5(bindHalogenM);
+  var log4 = /* @__PURE__ */ log2(monadEffectHalogenM2);
+  var show2 = /* @__PURE__ */ show(showString);
+  var pure13 = /* @__PURE__ */ pure(freeApplicative);
+  var pure23 = /* @__PURE__ */ pure(applicativeHalogenM);
   var liftAff2 = /* @__PURE__ */ liftAff(monadAffAff);
-  var fold2 = /* @__PURE__ */ fold(foldableArray)(monoidArray);
   var mapWithIndex2 = /* @__PURE__ */ mapWithIndex(functorWithIndexArray);
   var slot2 = /* @__PURE__ */ slot()({
     reflectSymbol: function() {
       return "widget";
     }
   })(ordInt);
+  var length8 = /* @__PURE__ */ length(foldableList)(semiringInt);
   var fromFoldable3 = /* @__PURE__ */ fromFoldable(foldableList);
   var mempty2 = /* @__PURE__ */ mempty(monoidList);
   var get2 = /* @__PURE__ */ get(monadStateHalogenM);
-  var discard5 = /* @__PURE__ */ discard(discardUnit)(bindHalogenM);
-  var log4 = /* @__PURE__ */ log2(monadEffectHalogenM2);
   var liftAff1 = /* @__PURE__ */ liftAff(/* @__PURE__ */ monadAffHalogenM(monadAffAff));
   var wrap3 = /* @__PURE__ */ wrap();
+  var bind15 = /* @__PURE__ */ bind(bindInteractionT);
+  var discard23 = /* @__PURE__ */ discard5(bindInteractionT);
   var Prompt = /* @__PURE__ */ function() {
     function Prompt2(value0, value1) {
       this.value0 = value0;
@@ -6762,18 +6864,18 @@
     };
   };
   var runFreeM2 = /* @__PURE__ */ runFreeM(/* @__PURE__ */ functorInteractionF(functorAff)(/* @__PURE__ */ functorF(functorAff)))(monadRecHalogenM);
-  var spawnWidget = function(widgetComponent) {
+  var spawnWidget = function(wc) {
     return modify_3(function(st) {
-      var $74 = {};
-      for (var $75 in st) {
-        if ({}.hasOwnProperty.call(st, $75)) {
-          $74[$75] = st[$75];
+      var $83 = {};
+      for (var $84 in st) {
+        if ({}.hasOwnProperty.call(st, $84)) {
+          $83[$84] = st[$84];
         }
         ;
       }
       ;
-      $74.widgetComponents = new Cons(widgetComponent, st.widgetComponents);
-      return $74;
+      $83.widgetComponents = new Cons(wc, st.widgetComponents);
+      return $83;
     });
   };
   var run3 = function(v) {
@@ -6783,27 +6885,62 @@
       }
       ;
       if (v1 instanceof Interact && v1.value0 instanceof Prompt) {
-        var component = function() {
+        var wc = function() {
           var render = function(v2) {
-            return div2([classes(["widget"])])([div2([])([text5(v1.value0.value0)]), div2([])([input([ref2("input")])]), div2([])([button([onClick($$const(unit))])([text5("submit")])])]);
+            return div2([classes(fold2([["widget"], function() {
+              var $90 = v2.i === 0;
+              if ($90) {
+                return ["active"];
+              }
+              ;
+              return [];
+            }()]))])(fold2([[div2([])([text5(v1.value0.value0)])], [div2([])([input(fold2([[ref2("input")], function() {
+              var $91 = v2.i === 0;
+              if ($91) {
+                return [];
+              }
+              ;
+              return [readOnly3(true)];
+            }()]))])], function() {
+              var $92 = v2.i === 0;
+              if ($92) {
+                return [div2([])([button([onClick($$const(new Right(unit)))])([text5("submit")])])];
+              }
+              ;
+              return [];
+            }()]));
           };
           var initialState = function(v2) {
-            return {};
+            return {
+              i: v2.i
+            };
           };
           var $$eval = mkEval({
             handleQuery: defaultEval.handleQuery,
-            receive: defaultEval.receive,
             initialize: defaultEval.initialize,
             finalize: defaultEval.finalize,
-            handleAction: $$const(bind6(mapFlipped2(getHTMLElementRef("input"))(fromMaybe$prime(function(v3) {
-              return bug("impossible, since input must exist");
-            })))(function(inputElement) {
-              return bind6(liftEffect7(value3(fromMaybe$prime(function(v3) {
-                return bug("impossible, since input must be an input element");
-              })(fromHTMLElement(inputElement)))))(function(str) {
-                return raise(v1.value0.value1(str));
-              });
-            }))
+            receive: function($122) {
+              return pure10(Left.create($122));
+            },
+            handleAction: function(v3) {
+              if (v3 instanceof Left) {
+                return put2(v3.value0);
+              }
+              ;
+              if (v3 instanceof Right) {
+                return bind6(mapFlipped2(getHTMLElementRef("input"))(fromMaybe$prime(function(v4) {
+                  return bug("impossible, since input must exist");
+                })))(function(inputElement) {
+                  return bind6(liftEffect7(value3(fromMaybe$prime(function(v4) {
+                    return bug("impossible, since input must be an input element");
+                  })(fromHTMLElement(inputElement)))))(function(str) {
+                    return raise(v1.value0.value1(str));
+                  });
+                });
+              }
+              ;
+              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 70, column 26 - line 75, column 45): " + [v3.constructor.name]);
+            }
           });
           return mkComponent({
             initialState,
@@ -6811,25 +6948,48 @@
             render
           });
         }();
-        return bind6(spawnWidget(component))(function($99) {
-          return pure13(pure10($99));
+        return discard12(log4("Prompt " + show2(v1.value0.value0)))(function() {
+          return bind6(spawnWidget(wc))(function($123) {
+            return pure23(pure13($123));
+          });
         });
       }
       ;
       if (v1 instanceof Interact && v1.value0 instanceof Print) {
-        var component = function() {
+        var wc = function() {
           var render = function(v2) {
-            return div2([classes(["widget"])])([div2([])([text5(v1.value0.value0)])]);
+            return div2([classes(fold2([["widget"], function() {
+              var $103 = v2.i === 0;
+              if ($103) {
+                return ["active"];
+              }
+              ;
+              return [];
+            }()]))])([div2([])([text5(v1.value0.value0)])]);
           };
           var initialState = function(v2) {
-            return {};
+            return {
+              i: v2.i
+            };
           };
           var $$eval = mkEval({
             handleQuery: defaultEval.handleQuery,
-            receive: defaultEval.receive,
             finalize: defaultEval.finalize,
-            initialize: pure23(unit),
-            handleAction: $$const(raise(liftAff2(v1.value0.value1(unit))))
+            initialize: pure10(new Right(unit)),
+            receive: function($124) {
+              return pure10(Left.create($124));
+            },
+            handleAction: function(v3) {
+              if (v3 instanceof Left) {
+                return put2(v3.value0);
+              }
+              ;
+              if (v3 instanceof Right) {
+                return raise(liftAff2(v1.value0.value1(unit)));
+              }
+              ;
+              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 105, column 26 - line 108, column 56): " + [v3.constructor.name]);
+            }
           });
           return mkComponent({
             initialState,
@@ -6837,12 +6997,14 @@
             render
           });
         }();
-        return bind6(spawnWidget(component))(function($100) {
-          return pure13(pure10($100));
+        return discard12(log4("Print " + show2(v1.value0.value0)))(function() {
+          return bind6(spawnWidget(wc))(function($125) {
+            return pure23(pure13($125));
+          });
         });
       }
       ;
-      throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 54, column 75 - line 99, column 40): " + [v1.constructor.name]);
+      throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 55, column 75 - line 114, column 40): " + [v1.constructor.name]);
     })(v);
   };
   var prompt = function(dictApplicative) {
@@ -6851,6 +7013,7 @@
       return liftF(new Interact(new Prompt(msg, pure32)));
     };
   };
+  var prompt1 = /* @__PURE__ */ prompt(applicativeAff);
   var print6 = function(dictApplicative) {
     var pure32 = pure(dictApplicative);
     return function(msg) {
@@ -6860,11 +7023,13 @@
   var print1 = /* @__PURE__ */ print6(applicativeAff);
   var appComponent = /* @__PURE__ */ function() {
     var render = function(v) {
-      return div2([])(fold2([mapWithIndex2(function(i2) {
+      return div2([classes(["widgets"])])(fold2([mapWithIndex2(function(i2) {
         return function(wc) {
-          return slot2($$Proxy.value)(i2)(wc)({})(function() {
-            var $91 = i2 === 0;
-            if ($91) {
+          return slot2($$Proxy.value)(length8(v.widgetComponents) - i2 | 0)(wc)({
+            i: i2
+          })(function() {
+            var $114 = i2 === 0;
+            if ($114) {
               return WidgetOutput_AppAction.create;
             }
             ;
@@ -6883,7 +7048,7 @@
       handleQuery: defaultEval.handleQuery,
       receive: defaultEval.receive,
       finalize: defaultEval.finalize,
-      initialize: pure23(Initialize_AppAction.value),
+      initialize: pure10(Initialize_AppAction.value),
       handleAction: function(v1) {
         if (v1 instanceof Initialize_AppAction) {
           return bind6(get2)(function(v2) {
@@ -6892,7 +7057,7 @@
         }
         ;
         if (v1 instanceof WidgetOutput_AppAction) {
-          return discard5(log4("appComponent.eval.handleAction.WidgetOutput_AppAction"))(function() {
+          return discard12(log4("appComponent.eval.handleAction.WidgetOutput_AppAction"))(function() {
             return bind6(liftAff1(v1.value0))(function(fiu) {
               return run3(wrap3(fiu));
             });
@@ -6900,12 +7065,12 @@
         }
         ;
         if (v1 instanceof Noop_AppAction) {
-          return discard5(log4("appComponent.eval.handleAction.Noop_AppAction"))(function() {
-            return pure13(unit);
+          return discard12(log4("appComponent.eval.handleAction.Noop_AppAction"))(function() {
+            return pure23(unit);
           });
         }
         ;
-        throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 155, column 22 - line 165, column 20): " + [v1.constructor.name]);
+        throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 170, column 22 - line 180, column 20): " + [v1.constructor.name]);
       }
     });
     return mkComponent({
@@ -6915,8 +7080,12 @@
     });
   }();
   var main2 = /* @__PURE__ */ function() {
-    var start2 = bind(bindInteractionT)(prompt(applicativeAff)("name: "))(function(name15) {
-      return print1("greetings, " + name15);
+    var start2 = bind15(prompt1("name: "))(function(name15) {
+      return discard23(print1("greetings, " + name15))(function() {
+        return bind15(prompt1("favorite color: "))(function(color) {
+          return print1(name15 + ("'s favorite color is " + color));
+        });
+      });
     });
     return runHalogenAff(bindFlipped(bindAff)(runUI2(appComponent)({
       start: start2

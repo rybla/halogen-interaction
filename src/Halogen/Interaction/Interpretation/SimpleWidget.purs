@@ -3,9 +3,10 @@ module Halogen.Interaction.Interpretation.SimpleWidget where
 import Prelude
 
 import Control.Monad.Free (Free, liftF, runFreeM)
-import Control.Monad.State (get, modify_)
+import Control.Monad.State (get, modify_, put)
 import Control.Monad.Trans.Class (lift)
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Foldable (fold, length)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.List (List, (:))
@@ -53,49 +54,63 @@ type M = HalogenM AppState AppAction AppSlots AppOutput Aff
 run :: InteractionT F Aff Unit -> M Unit
 run (InteractionT ff) = (ff :: Free (InteractionF F Aff) Unit) # runFreeM case _ of
   Lift ma -> ma # lift
-  Interact (Prompt msg k) -> spawnWidget wc >>= pure >>> pure
+  Interact (Prompt msg k) -> do
+    Console.log $ "Prompt " <> show msg
+    spawnWidget wc >>= pure >>> pure
     where
     wc :: WidgetComponent
     wc = mkComponent { initialState, eval, render }
       where
       inputRefLabel = H.RefLabel "input"
 
-      initialState {} = {}
+      initialState { i } = { i }
 
       eval = mkEval defaultEval
-        { handleAction = const do
-            inputElement <- H.getHTMLElementRef inputRefLabel <#> fromMaybe' \_ -> bug "impossible, since input must exist"
-            str <- inputElement # HTMLInputElement.fromHTMLElement # fromMaybe' (\_ -> bug "impossible, since input must be an input element") # HTMLInputElement.value # liftEffect
-            H.raise $ WidgetOutput $ k str
+        { receive = pure <<< Left
+        , handleAction = case _ of
+            Left st -> put st
+            Right _ -> do
+              inputElement <- H.getHTMLElementRef inputRefLabel <#> fromMaybe' \_ -> bug "impossible, since input must exist"
+              str <- inputElement # HTMLInputElement.fromHTMLElement # fromMaybe' (\_ -> bug "impossible, since input must be an input element") # HTMLInputElement.value # liftEffect
+              H.raise $ WidgetOutput $ k str
         }
 
-      render {} =
+      render { i } =
         HH.div
-          [ HP.classes [ HH.ClassName "widget" ] ]
-          [ HH.div [] [ HH.text msg ]
-          , HH.div [] [ HH.input [ HP.ref inputRefLabel ] ]
-          , HH.div []
-              [ HH.button
-                  [ HE.onClick (const unit) ]
-                  [ HH.text "submit" ]
-              ]
-          ]
-  Interact (Print msg k) -> spawnWidget wc >>= pure >>> pure
+          [ HP.classes ([ [ HH.ClassName "widget" ], if i == 0 then [ HH.ClassName "active" ] else [] ] # fold) ]
+          ( [ [ HH.div [] [ HH.text msg ] ]
+            , [ HH.div [] [ HH.input ([ [ HP.ref inputRefLabel ], if i == 0 then [] else [ HP.readOnly true ] ] # fold) ] ]
+            , if i == 0 then
+                [ HH.div []
+                    [ HH.button
+                        [ HE.onClick (const (Right unit)) ]
+                        [ HH.text "submit" ]
+                    ]
+                ]
+              else []
+            ] # fold
+          )
+  Interact (Print msg k) -> do
+    Console.log $ "Print " <> show msg
+    spawnWidget wc >>= pure >>> pure
     where
     wc :: WidgetComponent
     wc = mkComponent { initialState, eval, render }
       where
-      initialState {} = {}
+      initialState { i } = { i }
 
       eval = mkEval defaultEval
-        { initialize = pure unit
-        , handleAction = const do
-            H.raise $ WidgetOutput $ liftAff $ k unit
+        { initialize = pure (Right unit)
+        , receive = pure <<< Left
+        , handleAction = case _ of
+            Left st -> put st
+            Right _ -> do
+              H.raise $ WidgetOutput $ liftAff $ k unit
         }
 
-      render {} =
+      render { i } =
         HH.div
-          [ HP.classes [ HH.ClassName "widget" ] ]
+          [ HP.classes ([ [ HH.ClassName "widget" ], if i == 0 then [ HH.ClassName "active" ] else [] ] # fold) ]
           [ HH.div [] [ HH.text msg ] ]
 
 spawnWidget :: WidgetComponent -> M Unit
@@ -111,7 +126,7 @@ type WidgetComponent = Component WidgetQuery WidgetInput WidgetOutput Aff
 data WidgetQuery :: forall k. k -> Type
 data WidgetQuery a
 
-type WidgetInput = {}
+type WidgetInput = { i :: Int }
 
 newtype WidgetOutput = WidgetOutput (Aff (Free (InteractionF F Aff) Unit))
 
@@ -166,9 +181,9 @@ appComponent = mkComponent { initialState, eval, render }
     }
   render { widgetComponents } =
     HH.div
-      []
+      [ HP.classes [ HH.ClassName "widgets" ] ]
       ( [ widgetComponents # Array.fromFoldable # mapWithIndex \i wc ->
-            HH.slot (Proxy :: Proxy "widget") (length widgetComponents - i) wc {}
+            HH.slot (Proxy :: Proxy "widget") (length widgetComponents - i) wc { i }
               if i == 0 then
                 WidgetOutput_AppAction
               else
@@ -187,4 +202,6 @@ main = HA.runHalogenAff (HVD.runUI appComponent { start } =<< HA.awaitBody)
   start = do
     name <- prompt "name: "
     print $ "greetings, " <> name
+    color <- prompt "favorite color: "
+    print $ name <> "'s favorite color is " <> color
 

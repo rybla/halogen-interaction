@@ -19,6 +19,7 @@ const server = Bun.serve({
       switch (fileType) {
         case 'txt': case null: return new Response(await file.text(), { headers: { 'Content-Type': "text/plain" } });
         case 'js': return new Response(await file.text(), { headers: { 'Content-Type': "application/javascript" } });
+        case 'css': return new Response(await file.text(), { headers: { 'Content-Type': "text/css" } });
         case 'html': return new Response(await file.text(), { headers: { 'Content-Type': "text/html" } });
         case 'json': return new Response(await file.text(), { headers: { 'Content-Type': "application/json" } });
         case 'jpeg': case 'png': case 'ico': return new Response(file, { headers: { 'Content-Type': `image/${fileType}` } });

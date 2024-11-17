@@ -264,6 +264,13 @@
   var eqStringImpl = refEq;
 
   // output/Data.Eq/index.js
+  var eqUnit = {
+    eq: function(v) {
+      return function(v1) {
+        return true;
+      };
+    }
+  };
   var eqString = {
     eq: eqStringImpl
   };
@@ -298,6 +305,16 @@
   }();
 
   // output/Data.Ord/index.js
+  var ordUnit = {
+    compare: function(v) {
+      return function(v1) {
+        return EQ.value;
+      };
+    },
+    Eq0: function() {
+      return eqUnit;
+    }
+  };
   var ordString = /* @__PURE__ */ function() {
     return {
       compare: ordStringImpl(LT.value)(EQ.value)(GT.value),
@@ -6725,19 +6742,19 @@
   var pure13 = /* @__PURE__ */ pure(freeApplicative);
   var pure23 = /* @__PURE__ */ pure(applicativeHalogenM);
   var liftAff2 = /* @__PURE__ */ liftAff(monadAffAff);
+  var bind15 = /* @__PURE__ */ bind(bindInteractionT);
+  var discard23 = /* @__PURE__ */ discard5(bindInteractionT);
   var map19 = /* @__PURE__ */ map(functorArray);
   var slot2 = /* @__PURE__ */ slot()({
     reflectSymbol: function() {
       return "widget";
     }
-  })(ordInt);
+  })(ordUnit);
   var fromFoldable3 = /* @__PURE__ */ fromFoldable(foldableMaybe);
   var empty7 = /* @__PURE__ */ empty(plusMaybe);
   var get2 = /* @__PURE__ */ get(monadStateHalogenM);
   var liftAff1 = /* @__PURE__ */ liftAff(/* @__PURE__ */ monadAffHalogenM(monadAffAff));
   var wrap3 = /* @__PURE__ */ wrap();
-  var bind15 = /* @__PURE__ */ bind(bindInteractionT);
-  var discard23 = /* @__PURE__ */ discard5(bindInteractionT);
   var Prompt = /* @__PURE__ */ function() {
     function Prompt2(value0, value1) {
       this.value0 = value0;
@@ -6809,17 +6826,16 @@
   var runFreeM2 = /* @__PURE__ */ runFreeM(/* @__PURE__ */ functorInteractionF(functorAff)(/* @__PURE__ */ functorF(functorAff)))(monadRecHalogenM);
   var spawnWidget = function(wc) {
     return modify_3(function(st) {
-      var $80 = {};
-      for (var $81 in st) {
-        if ({}.hasOwnProperty.call(st, $81)) {
-          $80[$81] = st[$81];
+      var $81 = {};
+      for (var $82 in st) {
+        if ({}.hasOwnProperty.call(st, $82)) {
+          $81[$82] = st[$82];
         }
         ;
       }
       ;
-      $80.mb_widget = pure10(wc);
-      $80.widget_n = st.widget_n + 1 | 0;
-      return $80;
+      $81.mb_widget = pure10(wc);
+      return $81;
     });
   };
   var run3 = function(v) {
@@ -6860,7 +6876,7 @@
                 });
               }
               ;
-              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 70, column 26 - line 75, column 45): " + [v3.constructor.name]);
+              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 77, column 26 - line 82, column 45): " + [v3.constructor.name]);
             }
           });
           return mkComponent({
@@ -6900,7 +6916,7 @@
                 return raise(liftAff2(v1.value0.value1(unit)));
               }
               ;
-              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 102, column 26 - line 105, column 56): " + [v3.constructor.name]);
+              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 109, column 26 - line 112, column 56): " + [v3.constructor.name]);
             }
           });
           return mkComponent({
@@ -6916,7 +6932,7 @@
         });
       }
       ;
-      throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 55, column 75 - line 117, column 12): " + [v1.constructor.name]);
+      throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 62, column 75 - line 124, column 12): " + [v1.constructor.name]);
     })(v);
   };
   var prompt = function(dictApplicative) {
@@ -6925,25 +6941,33 @@
       return liftF(new Interact(new Prompt(msg, pure32)));
     };
   };
-  var prompt1 = /* @__PURE__ */ prompt(applicativeAff);
   var print6 = function(dictApplicative) {
     var pure32 = pure(dictApplicative);
     return function(msg) {
       return liftF(new Interact(new Print(msg, pure32)));
     };
   };
-  var print1 = /* @__PURE__ */ print6(applicativeAff);
+  var start2 = function(dictApplicative) {
+    var prompt1 = prompt(dictApplicative);
+    var print1 = print6(dictApplicative);
+    return bind15(prompt1("name: "))(function(name15) {
+      return discard23(print1("greetings, " + name15))(function() {
+        return bind15(prompt1("favorite color: "))(function(color) {
+          return print1(name15 + ("'s favorite color is " + color));
+        });
+      });
+    });
+  };
   var appComponent = /* @__PURE__ */ function() {
     var render = function(v) {
       return div2([classes(["widgets"])])(map19(function(wc) {
-        return slot2($$Proxy.value)(v.widget_n)(wc)({})(WidgetOutput_AppAction.create);
+        return slot2($$Proxy.value)(unit)(wc)({})(WidgetOutput_AppAction.create);
       })(fromFoldable3(v.mb_widget)));
     };
     var initialState = function(v) {
       return {
         start: v.start,
-        mb_widget: empty7,
-        widget_n: 0
+        mb_widget: empty7
       };
     };
     var $$eval = mkEval({
@@ -6972,7 +6996,7 @@
           });
         }
         ;
-        throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 175, column 22 - line 185, column 20): " + [v1.constructor.name]);
+        throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 182, column 22 - line 192, column 20): " + [v1.constructor.name]);
       }
     });
     return mkComponent({
@@ -6981,18 +7005,9 @@
       render
     });
   }();
-  var main2 = /* @__PURE__ */ function() {
-    var start2 = bind15(prompt1("name: "))(function(name15) {
-      return discard23(print1("greetings, " + name15))(function() {
-        return bind15(prompt1("favorite color: "))(function(color) {
-          return print1(name15 + ("'s favorite color is " + color));
-        });
-      });
-    });
-    return runHalogenAff(bindFlipped(bindAff)(runUI2(appComponent)({
-      start: start2
-    }))(awaitBody));
-  }();
+  var main2 = /* @__PURE__ */ runHalogenAff(/* @__PURE__ */ bindFlipped(bindAff)(/* @__PURE__ */ runUI2(appComponent)({
+    start: /* @__PURE__ */ start2(applicativeAff)
+  }))(awaitBody));
 
   // <stdin>
   main2();

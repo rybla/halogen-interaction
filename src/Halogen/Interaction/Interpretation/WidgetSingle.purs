@@ -125,7 +125,7 @@ run (InteractionT ff) = (ff :: Free (InteractionF F Aff) Unit) # runFreeM case _
 
 spawnWidget :: WidgetComponent -> M Unit
 spawnWidget wc = do
-  modify_ \st -> st { mb_widget = pure wc, n_widget = st.n_widget + 1 }
+  modify_ \st -> st { mb_widget = pure wc }
 
 --------------------------------------------------------------------------------
 -- widget
@@ -140,7 +140,7 @@ type WidgetInput = {}
 
 newtype WidgetOutput = WidgetOutput (Aff (Free (InteractionF F Aff) Unit))
 
-type WidgetSlotId = Int
+type WidgetSlotId = Unit
 
 --------------------------------------------------------------------------------
 -- app
@@ -158,7 +158,6 @@ type AppOutput = {}
 type AppState =
   { start :: InteractionT F Aff Unit
   , mb_widget :: Maybe WidgetComponent
-  , n_widget :: Int
   }
 
 type AppSlots =
@@ -177,7 +176,6 @@ appComponent = mkComponent { initialState, eval, render }
   initialState { start } =
     { start
     , mb_widget: empty
-    , n_widget: 0
     }
   eval = mkEval defaultEval
     { initialize = pure Initialize_AppAction
@@ -193,11 +191,11 @@ appComponent = mkComponent { initialState, eval, render }
           Console.log "appComponent.eval.handleAction.Noop_AppAction"
           pure unit
     }
-  render { mb_widget, n_widget } =
+  render { mb_widget } =
     HH.div
       [ HP.classes [ HH.ClassName "widgets" ] ]
       ( mb_widget # Array.fromFoldable # map \wc ->
-          HH.slot (Proxy :: Proxy "widget") n_widget wc {} WidgetOutput_AppAction
+          HH.slot (Proxy :: Proxy "widget") unit wc {} WidgetOutput_AppAction
       )
 
 --------------------------------------------------------------------------------

@@ -2,15 +2,15 @@ module Halogen.Interaction.Interpretation.WidgetSingle where
 
 import Prelude
 
+import Control.Alternative (empty)
 import Control.Monad.Free (Free, liftF, runFreeM)
 import Control.Monad.State (get, modify_, put)
 import Control.Monad.Trans.Class (lift)
 import Data.Array as Array
+import Data.Const (Const)
 import Data.Either (Either(..))
-import Data.Foldable (fold, length)
-import Data.FunctorWithIndex (mapWithIndex)
-import Data.List (List, (:))
-import Data.Maybe (fromMaybe')
+import Data.Foldable (fold)
+import Data.Maybe (Maybe, fromMaybe')
 import Data.Newtype as Newtype
 import Effect (Effect)
 import Effect.Aff (Aff)
@@ -63,7 +63,7 @@ run (InteractionT ff) = (ff :: Free (InteractionF F Aff) Unit) # runFreeM case _
       where
       inputRefLabel = H.RefLabel "input"
 
-      initialState { i } = { i }
+      initialState {} = {}
 
       eval = mkEval defaultEval
         { receive = pure <<< Left
@@ -75,19 +75,17 @@ run (InteractionT ff) = (ff :: Free (InteractionF F Aff) Unit) # runFreeM case _
               H.raise $ WidgetOutput $ k str
         }
 
-      render { i } =
+      render {} =
         HH.div
-          [ HP.classes ([ [ HH.ClassName "widget" ], if i == 0 then [ HH.ClassName "active" ] else [] ] # fold) ]
+          [ HP.classes [ HH.ClassName "widget" ] ]
           ( [ [ HH.div [] [ HH.text msg ] ]
-            , [ HH.div [] [ HH.input ([ [ HP.ref inputRefLabel ], if i == 0 then [] else [ HP.readOnly true ] ] # fold) ] ]
-            , if i == 0 then
-                [ HH.div []
-                    [ HH.button
-                        [ HE.onClick (const (Right unit)) ]
-                        [ HH.text "submit" ]
-                    ]
-                ]
-              else []
+            , [ HH.div [] [ HH.input [ HP.ref inputRefLabel ] ] ]
+            , [ HH.div []
+                  [ HH.button
+                      [ HE.onClick (const (Right unit)) ]
+                      [ HH.text "submit" ]
+                  ]
+              ]
             ] # fold
           )
   Interact (Print msg k) -> do
@@ -97,25 +95,30 @@ run (InteractionT ff) = (ff :: Free (InteractionF F Aff) Unit) # runFreeM case _
     wc :: WidgetComponent
     wc = mkComponent { initialState, eval, render }
       where
-      initialState { i } = { i }
+      initialState {} = {}
 
       eval = mkEval defaultEval
-        { initialize = pure (Right unit)
-        , receive = pure <<< Left
+        { receive = pure <<< Left
         , handleAction = case _ of
             Left st -> put st
             Right _ -> do
               H.raise $ WidgetOutput $ liftAff $ k unit
         }
 
-      render { i } =
+      render {} =
         HH.div
-          [ HP.classes ([ [ HH.ClassName "widget" ], if i == 0 then [ HH.ClassName "active" ] else [] ] # fold) ]
-          [ HH.div [] [ HH.text msg ] ]
+          [ HP.classes [ HH.ClassName "widget" ] ]
+          [ HH.div [] [ HH.text msg ]
+          , HH.div []
+              [ HH.button
+                  [ HE.onClick (const (Right unit)) ]
+                  [ HH.text "next" ]
+              ]
+          ]
 
 spawnWidget :: WidgetComponent -> M Unit
 spawnWidget wc = do
-  modify_ \st -> st { widgetComponents = wc : st.widgetComponents }
+  modify_ \st -> st { mb_widget = pure wc, widget_n = st.widget_n + 1 }
 
 --------------------------------------------------------------------------------
 -- widget
@@ -126,7 +129,7 @@ type WidgetComponent = Component WidgetQuery WidgetInput WidgetOutput Aff
 data WidgetQuery :: forall k. k -> Type
 data WidgetQuery a
 
-type WidgetInput = { i :: Int }
+type WidgetInput = {}
 
 newtype WidgetOutput = WidgetOutput (Aff (Free (InteractionF F Aff) Unit))
 
@@ -136,8 +139,8 @@ type WidgetSlotId = Int
 -- app
 --------------------------------------------------------------------------------
 
-data AppQuery :: forall k. k -> Type
-data AppQuery a
+type AppQuery :: Type -> Type
+type AppQuery = Const Void
 
 type AppInput =
   { start :: InteractionT F Aff Unit
@@ -147,10 +150,13 @@ type AppOutput = {}
 
 type AppState =
   { start :: InteractionT F Aff Unit
-  , widgetComponents :: List WidgetComponent
+  , mb_widget :: Maybe WidgetComponent
+  , widget_n :: Int
   }
 
-type AppSlots = (widget :: Slot WidgetQuery WidgetOutput WidgetSlotId)
+type AppSlots =
+  ( widget :: Slot WidgetQuery WidgetOutput WidgetSlotId
+  )
 
 data AppAction
   = Initialize_AppAction
@@ -163,7 +169,8 @@ appComponent = mkComponent { initialState, eval, render }
   initialState :: AppInput -> AppState
   initialState { start } =
     { start
-    , widgetComponents: mempty
+    , mb_widget: empty
+    , widget_n: 0
     }
   eval = mkEval defaultEval
     { initialize = pure Initialize_AppAction
@@ -179,17 +186,11 @@ appComponent = mkComponent { initialState, eval, render }
           Console.log "appComponent.eval.handleAction.Noop_AppAction"
           pure unit
     }
-  render { widgetComponents } =
+  render { mb_widget, widget_n } =
     HH.div
       [ HP.classes [ HH.ClassName "widgets" ] ]
-      ( [ widgetComponents # Array.fromFoldable # mapWithIndex \i wc ->
-            HH.slot (Proxy :: Proxy "widget") (length widgetComponents - i) wc { i }
-              if i == 0 then
-                WidgetOutput_AppAction
-              else
-                const Noop_AppAction
-        ]
-          # fold
+      ( mb_widget # Array.fromFoldable # map \wc ->
+          HH.slot (Proxy :: Proxy "widget") widget_n wc {} WidgetOutput_AppAction
       )
 
 --------------------------------------------------------------------------------

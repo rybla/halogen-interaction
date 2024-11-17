@@ -73,10 +73,10 @@
     return dict.map;
   };
   var mapFlipped = function(dictFunctor) {
-    var map19 = map(dictFunctor);
+    var map110 = map(dictFunctor);
     return function(fa) {
       return function(f) {
-        return map19(f)(fa);
+        return map110(f)(fa);
       };
     };
   };
@@ -84,10 +84,10 @@
     return map(dictFunctor)($$const(unit));
   };
   var voidLeft = function(dictFunctor) {
-    var map19 = map(dictFunctor);
+    var map110 = map(dictFunctor);
     return function(f) {
       return function(x) {
-        return map19($$const(x))(f);
+        return map110($$const(x))(f);
       };
     };
   };
@@ -105,10 +105,10 @@
   };
   var applySecond = function(dictApply) {
     var apply1 = apply(dictApply);
-    var map19 = map(dictApply.Functor0());
+    var map20 = map(dictApply.Functor0());
     return function(a2) {
       return function(b2) {
-        return apply1(map19($$const(identity2))(a2))(b2);
+        return apply1(map20($$const(identity2))(a2))(b2);
       };
     };
   };
@@ -297,35 +297,6 @@
     return EQ2;
   }();
 
-  // output/Data.Semiring/foreign.js
-  var intAdd = function(x) {
-    return function(y) {
-      return x + y | 0;
-    };
-  };
-  var intMul = function(x) {
-    return function(y) {
-      return x * y | 0;
-    };
-  };
-
-  // output/Data.Semiring/index.js
-  var zero = function(dict) {
-    return dict.zero;
-  };
-  var semiringInt = {
-    add: intAdd,
-    zero: 0,
-    mul: intMul,
-    one: 1
-  };
-  var one = function(dict) {
-    return dict.one;
-  };
-  var add = function(dict) {
-    return dict.add;
-  };
-
   // output/Data.Ord/index.js
   var ordString = /* @__PURE__ */ function() {
     return {
@@ -374,8 +345,8 @@
             return "\\v";
         }
         var k = i2 + 1;
-        var empty7 = k < l && s[k] >= "0" && s[k] <= "9" ? "\\&" : "";
-        return "\\" + c.charCodeAt(0).toString(10) + empty7;
+        var empty8 = k < l && s[k] >= "0" && s[k] <= "9" ? "\\&" : "";
+        return "\\" + c.charCodeAt(0).toString(10) + empty8;
       }
     ) + '"';
   };
@@ -507,6 +478,28 @@
       pure: Just.create,
       Apply0: function() {
         return applyMaybe;
+      }
+    };
+  }();
+  var altMaybe = {
+    alt: function(v) {
+      return function(v1) {
+        if (v instanceof Nothing) {
+          return v1;
+        }
+        ;
+        return v;
+      };
+    },
+    Functor0: function() {
+      return functorMaybe;
+    }
+  };
+  var plusMaybe = /* @__PURE__ */ function() {
+    return {
+      empty: Nothing.value,
+      Alt0: function() {
+        return altMaybe;
       }
     };
   }();
@@ -972,18 +965,6 @@
   var foldl = function(dict) {
     return dict.foldl;
   };
-  var length = function(dictFoldable) {
-    var foldl2 = foldl(dictFoldable);
-    return function(dictSemiring) {
-      var add1 = add(dictSemiring);
-      var one2 = one(dictSemiring);
-      return foldl2(function(c) {
-        return function(v) {
-          return add1(one2)(c);
-        };
-      })(zero(dictSemiring));
-    };
-  };
   var foldableMaybe = {
     foldr: function(v) {
       return function(v1) {
@@ -1016,11 +997,11 @@
       };
     },
     foldMap: function(dictMonoid) {
-      var mempty3 = mempty(dictMonoid);
+      var mempty2 = mempty(dictMonoid);
       return function(v) {
         return function(v1) {
           if (v1 instanceof Nothing) {
-            return mempty3;
+            return mempty2;
           }
           ;
           if (v1 instanceof Just) {
@@ -1036,13 +1017,13 @@
     var foldr22 = foldr(dictFoldable);
     return function(dictMonoid) {
       var append5 = append(dictMonoid.Semigroup0());
-      var mempty3 = mempty(dictMonoid);
+      var mempty2 = mempty(dictMonoid);
       return function(f) {
         return foldr22(function(x) {
           return function(acc) {
             return append5(f(x))(acc);
           };
-        })(mempty3);
+        })(mempty2);
       };
     };
   };
@@ -1063,29 +1044,6 @@
     };
   };
 
-  // output/Data.FunctorWithIndex/foreign.js
-  var mapWithIndexArray = function(f) {
-    return function(xs) {
-      var l = xs.length;
-      var result = Array(l);
-      for (var i2 = 0; i2 < l; i2++) {
-        result[i2] = f(i2)(xs[i2]);
-      }
-      return result;
-    };
-  };
-
-  // output/Data.FunctorWithIndex/index.js
-  var mapWithIndex = function(dict) {
-    return dict.mapWithIndex;
-  };
-  var functorWithIndexArray = {
-    mapWithIndex: mapWithIndexArray,
-    Functor0: function() {
-      return functorArray;
-    }
-  };
-
   // output/Data.NonEmpty/index.js
   var NonEmpty = /* @__PURE__ */ function() {
     function NonEmpty2(value0, value1) {
@@ -1101,9 +1059,9 @@
     return NonEmpty2;
   }();
   var singleton2 = function(dictPlus) {
-    var empty7 = empty(dictPlus);
+    var empty8 = empty(dictPlus);
     return function(a2) {
-      return new NonEmpty(a2, empty7);
+      return new NonEmpty(a2, empty8);
     };
   };
 
@@ -1265,14 +1223,14 @@
     },
     foldMap: function(dictMonoid) {
       var append22 = append(dictMonoid.Semigroup0());
-      var mempty3 = mempty(dictMonoid);
+      var mempty2 = mempty(dictMonoid);
       return function(f) {
         return foldl(foldableList)(function(acc) {
           var $286 = append22(acc);
           return function($287) {
             return $286(f($287));
           };
-        })(mempty3);
+        })(mempty2);
       };
     }
   };
@@ -1285,14 +1243,6 @@
     }
   };
   var append1 = /* @__PURE__ */ append(semigroupList);
-  var monoidList = /* @__PURE__ */ function() {
-    return {
-      mempty: Nil.value,
-      Semigroup0: function() {
-        return semigroupList;
-      }
-    };
-  }();
   var altList = {
     alt: append1,
     Functor0: function() {
@@ -1638,7 +1588,7 @@
     return $tco_result;
   };
   var runFreeM = function(dictFunctor) {
-    var map19 = map(dictFunctor);
+    var map110 = map(dictFunctor);
     return function(dictMonadRec) {
       var Monad0 = dictMonadRec.Monad0();
       var map23 = map(Monad0.Bind1().Apply0().Functor0());
@@ -1652,7 +1602,7 @@
           }
           ;
           if (v instanceof Bind) {
-            return map23(Loop.create)(k(map19(v.value1)(v.value0)));
+            return map23(Loop.create)(k(map110(v.value1)(v.value0)));
           }
           ;
           throw new Error("Failed pattern match at Control.Monad.Free (line 194, column 10 - line 196, column 37): " + [v.constructor.name]);
@@ -1718,18 +1668,18 @@
   };
   var foldFree = function(dictMonadRec) {
     var Monad0 = dictMonadRec.Monad0();
-    var map19 = map(Monad0.Bind1().Apply0().Functor0());
+    var map110 = map(Monad0.Bind1().Apply0().Functor0());
     var pure14 = pure(Monad0.Applicative0());
     var tailRecM4 = tailRecM(dictMonadRec);
     return function(k) {
       var go2 = function(f) {
         var v = toView(f);
         if (v instanceof Return) {
-          return map19(Done.create)(pure14(v.value0));
+          return map110(Done.create)(pure14(v.value0));
         }
         ;
         if (v instanceof Bind) {
-          return map19(function($199) {
+          return map110(function($199) {
             return Loop.create(v.value1($199));
           })(k(v.value0));
         }
@@ -2786,10 +2736,10 @@
   var $$try = function(dictMonadError) {
     var catchError1 = catchError(dictMonadError);
     var Monad0 = dictMonadError.MonadThrow0().Monad0();
-    var map19 = map(Monad0.Bind1().Apply0().Functor0());
+    var map20 = map(Monad0.Bind1().Apply0().Functor0());
     var pure11 = pure(Monad0.Applicative0());
     return function(a2) {
-      return catchError1(map19(Right.create)(a2))(function($52) {
+      return catchError1(map20(Right.create)(a2))(function($52) {
         return pure11(Left.create($52));
       });
     };
@@ -3797,12 +3747,12 @@
       };
     },
     foldMap: function(dictMonoid) {
-      var mempty3 = mempty(dictMonoid);
+      var mempty2 = mempty(dictMonoid);
       var append12 = append(dictMonoid.Semigroup0());
       return function(f) {
         var go2 = function(v) {
           if (v instanceof Leaf) {
-            return mempty3;
+            return mempty2;
           }
           ;
           if (v instanceof Node) {
@@ -4807,7 +4757,6 @@
     throw new Error("Failed pattern match at Halogen.VDom.DOM.Prop (line 182, column 16 - line 187, column 16): " + [v.constructor.name]);
   };
   var propFromString = unsafeCoerce2;
-  var propFromBoolean = unsafeCoerce2;
   var buildProp = function(emit) {
     return function(el) {
       var removeProp = function(prevEvents) {
@@ -4996,9 +4945,6 @@
   };
   var isPropString = {
     toPropValue: propFromString
-  };
-  var isPropBoolean = {
-    toPropValue: propFromBoolean
   };
   var handler = /* @__PURE__ */ function() {
     return Handler.create;
@@ -5731,9 +5677,7 @@
   var prop2 = function(dictIsProp) {
     return prop(dictIsProp);
   };
-  var prop1 = /* @__PURE__ */ prop2(isPropBoolean);
   var prop22 = /* @__PURE__ */ prop2(isPropString);
-  var readOnly3 = /* @__PURE__ */ prop1("readOnly");
   var classes = /* @__PURE__ */ function() {
     var $32 = prop22("className");
     var $33 = joinWith(" ");
@@ -5808,14 +5752,14 @@
     return Interact2;
   }();
   var functorInteractionF = function(dictFunctor) {
-    var map19 = map(dictFunctor);
+    var map20 = map(dictFunctor);
     return function(dictFunctor1) {
       var map110 = map(dictFunctor1);
       return {
         map: function(f) {
           return function(m) {
             if (m instanceof Lift3) {
-              return new Lift3(map19(f)(m.value0));
+              return new Lift3(map20(f)(m.value0));
             }
             ;
             if (m instanceof Interact) {
@@ -6763,12 +6707,12 @@
     return unsafeCrashWith("BUG: " + msg);
   };
 
-  // output/Halogen.Interaction.Interpretation.SimpleWidget/index.js
+  // output/Halogen.Interaction.Interpretation.WidgetSingle/index.js
   var map18 = /* @__PURE__ */ map(functorFn);
   var modify_3 = /* @__PURE__ */ modify_2(monadStateHalogenM);
+  var pure10 = /* @__PURE__ */ pure(applicativeMaybe);
   var lift3 = /* @__PURE__ */ lift(monadTransHalogenM)(monadAff);
   var fold2 = /* @__PURE__ */ fold(foldableArray)(monoidArray);
-  var pure10 = /* @__PURE__ */ pure(applicativeMaybe);
   var put2 = /* @__PURE__ */ put(monadStateHalogenM);
   var bind6 = /* @__PURE__ */ bind(bindHalogenM);
   var mapFlipped2 = /* @__PURE__ */ mapFlipped(functorHalogenM);
@@ -6781,15 +6725,14 @@
   var pure13 = /* @__PURE__ */ pure(freeApplicative);
   var pure23 = /* @__PURE__ */ pure(applicativeHalogenM);
   var liftAff2 = /* @__PURE__ */ liftAff(monadAffAff);
-  var mapWithIndex2 = /* @__PURE__ */ mapWithIndex(functorWithIndexArray);
+  var map19 = /* @__PURE__ */ map(functorArray);
   var slot2 = /* @__PURE__ */ slot()({
     reflectSymbol: function() {
       return "widget";
     }
   })(ordInt);
-  var length8 = /* @__PURE__ */ length(foldableList)(semiringInt);
-  var fromFoldable3 = /* @__PURE__ */ fromFoldable(foldableList);
-  var mempty2 = /* @__PURE__ */ mempty(monoidList);
+  var fromFoldable3 = /* @__PURE__ */ fromFoldable(foldableMaybe);
+  var empty7 = /* @__PURE__ */ empty(plusMaybe);
   var get2 = /* @__PURE__ */ get(monadStateHalogenM);
   var liftAff1 = /* @__PURE__ */ liftAff(/* @__PURE__ */ monadAffHalogenM(monadAffAff));
   var wrap3 = /* @__PURE__ */ wrap();
@@ -6846,19 +6789,19 @@
     return Noop_AppAction2;
   }();
   var functorF = function(dictFunctor) {
-    var map19 = map(dictFunctor);
+    var map23 = map(dictFunctor);
     return {
       map: function(f) {
         return function(m) {
           if (m instanceof Prompt) {
-            return new Prompt(m.value0, map18(map19(f))(m.value1));
+            return new Prompt(m.value0, map18(map23(f))(m.value1));
           }
           ;
           if (m instanceof Print) {
-            return new Print(m.value0, map18(map19(f))(m.value1));
+            return new Print(m.value0, map18(map23(f))(m.value1));
           }
           ;
-          throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 0, column 0 - line 0, column 0): " + [m.constructor.name]);
+          throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 0, column 0 - line 0, column 0): " + [m.constructor.name]);
         };
       }
     };
@@ -6866,16 +6809,17 @@
   var runFreeM2 = /* @__PURE__ */ runFreeM(/* @__PURE__ */ functorInteractionF(functorAff)(/* @__PURE__ */ functorF(functorAff)))(monadRecHalogenM);
   var spawnWidget = function(wc) {
     return modify_3(function(st) {
-      var $83 = {};
-      for (var $84 in st) {
-        if ({}.hasOwnProperty.call(st, $84)) {
-          $83[$84] = st[$84];
+      var $80 = {};
+      for (var $81 in st) {
+        if ({}.hasOwnProperty.call(st, $81)) {
+          $80[$81] = st[$81];
         }
         ;
       }
       ;
-      $83.widgetComponents = new Cons(wc, st.widgetComponents);
-      return $83;
+      $80.mb_widget = pure10(wc);
+      $80.widget_n = st.widget_n + 1 | 0;
+      return $80;
     });
   };
   var run3 = function(v) {
@@ -6887,40 +6831,17 @@
       if (v1 instanceof Interact && v1.value0 instanceof Prompt) {
         var wc = function() {
           var render = function(v2) {
-            return div2([classes(fold2([["widget"], function() {
-              var $90 = v2.i === 0;
-              if ($90) {
-                return ["active"];
-              }
-              ;
-              return [];
-            }()]))])(fold2([[div2([])([text5(v1.value0.value0)])], [div2([])([input(fold2([[ref2("input")], function() {
-              var $91 = v2.i === 0;
-              if ($91) {
-                return [];
-              }
-              ;
-              return [readOnly3(true)];
-            }()]))])], function() {
-              var $92 = v2.i === 0;
-              if ($92) {
-                return [div2([])([button([onClick($$const(new Right(unit)))])([text5("submit")])])];
-              }
-              ;
-              return [];
-            }()]));
+            return div2([classes(["widget"])])(fold2([[div2([])([text5(v1.value0.value0)])], [div2([])([input([ref2("input")])])], [div2([])([button([onClick($$const(new Right(unit)))])([text5("submit")])])]]));
           };
           var initialState = function(v2) {
-            return {
-              i: v2.i
-            };
+            return {};
           };
           var $$eval = mkEval({
             handleQuery: defaultEval.handleQuery,
             initialize: defaultEval.initialize,
             finalize: defaultEval.finalize,
-            receive: function($122) {
-              return pure10(Left.create($122));
+            receive: function($111) {
+              return pure10(Left.create($111));
             },
             handleAction: function(v3) {
               if (v3 instanceof Left) {
@@ -6939,7 +6860,7 @@
                 });
               }
               ;
-              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 70, column 26 - line 75, column 45): " + [v3.constructor.name]);
+              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 70, column 26 - line 75, column 45): " + [v3.constructor.name]);
             }
           });
           return mkComponent({
@@ -6949,8 +6870,8 @@
           });
         }();
         return discard12(log4("Prompt " + show2(v1.value0.value0)))(function() {
-          return bind6(spawnWidget(wc))(function($123) {
-            return pure23(pure13($123));
+          return bind6(spawnWidget(wc))(function($112) {
+            return pure23(pure13($112));
           });
         });
       }
@@ -6958,26 +6879,17 @@
       if (v1 instanceof Interact && v1.value0 instanceof Print) {
         var wc = function() {
           var render = function(v2) {
-            return div2([classes(fold2([["widget"], function() {
-              var $103 = v2.i === 0;
-              if ($103) {
-                return ["active"];
-              }
-              ;
-              return [];
-            }()]))])([div2([])([text5(v1.value0.value0)])]);
+            return div2([classes(["widget"])])([div2([])([text5(v1.value0.value0)]), div2([])([button([onClick($$const(new Right(unit)))])([text5("next")])])]);
           };
           var initialState = function(v2) {
-            return {
-              i: v2.i
-            };
+            return {};
           };
           var $$eval = mkEval({
             handleQuery: defaultEval.handleQuery,
+            initialize: defaultEval.initialize,
             finalize: defaultEval.finalize,
-            initialize: pure10(new Right(unit)),
-            receive: function($124) {
-              return pure10(Left.create($124));
+            receive: function($113) {
+              return pure10(Left.create($113));
             },
             handleAction: function(v3) {
               if (v3 instanceof Left) {
@@ -6988,7 +6900,7 @@
                 return raise(liftAff2(v1.value0.value1(unit)));
               }
               ;
-              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 105, column 26 - line 108, column 56): " + [v3.constructor.name]);
+              throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 102, column 26 - line 105, column 56): " + [v3.constructor.name]);
             }
           });
           return mkComponent({
@@ -6998,13 +6910,13 @@
           });
         }();
         return discard12(log4("Print " + show2(v1.value0.value0)))(function() {
-          return bind6(spawnWidget(wc))(function($125) {
-            return pure23(pure13($125));
+          return bind6(spawnWidget(wc))(function($114) {
+            return pure23(pure13($114));
           });
         });
       }
       ;
-      throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 55, column 75 - line 114, column 40): " + [v1.constructor.name]);
+      throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 55, column 75 - line 117, column 12): " + [v1.constructor.name]);
     })(v);
   };
   var prompt = function(dictApplicative) {
@@ -7023,25 +6935,15 @@
   var print1 = /* @__PURE__ */ print6(applicativeAff);
   var appComponent = /* @__PURE__ */ function() {
     var render = function(v) {
-      return div2([classes(["widgets"])])(fold2([mapWithIndex2(function(i2) {
-        return function(wc) {
-          return slot2($$Proxy.value)(length8(v.widgetComponents) - i2 | 0)(wc)({
-            i: i2
-          })(function() {
-            var $114 = i2 === 0;
-            if ($114) {
-              return WidgetOutput_AppAction.create;
-            }
-            ;
-            return $$const(Noop_AppAction.value);
-          }());
-        };
-      })(fromFoldable3(v.widgetComponents))]));
+      return div2([classes(["widgets"])])(map19(function(wc) {
+        return slot2($$Proxy.value)(v.widget_n)(wc)({})(WidgetOutput_AppAction.create);
+      })(fromFoldable3(v.mb_widget)));
     };
     var initialState = function(v) {
       return {
         start: v.start,
-        widgetComponents: mempty2
+        mb_widget: empty7,
+        widget_n: 0
       };
     };
     var $$eval = mkEval({
@@ -7070,7 +6972,7 @@
           });
         }
         ;
-        throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.SimpleWidget (line 170, column 22 - line 180, column 20): " + [v1.constructor.name]);
+        throw new Error("Failed pattern match at Halogen.Interaction.Interpretation.WidgetSingle (line 175, column 22 - line 185, column 20): " + [v1.constructor.name]);
       }
     });
     return mkComponent({

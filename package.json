@@ -4,11 +4,11 @@
   "type": "module",
   "scripts": {
     "build": "spago build",
-    "bundle": "spago bundle --module Main --outfile ./dist/main.js",
+    "bundle": "spago bundle --module Main --outfile ./docs/main.js",
     "serve": "bun --hot run index.ts",
     "example.Cli": "bun spago run -m Halogen.Interaction.Interpretation.Cli",
-    "example.WidgetSingle": "spago bundle --module Halogen.Interaction.Interpretation.WidgetSingle --outfile ./dist/WidgetSingle/main.js",
-    "example.WidgetList": "spago bundle --module Halogen.Interaction.Interpretation.WidgetList --outfile ./dist/WidgetList/main.js"
+    "example.WidgetSingle": "spago bundle --module Halogen.Interaction.Interpretation.WidgetSingle --outfile ./docs/WidgetSingle/main.js",
+    "example.WidgetList": "spago bundle --module Halogen.Interaction.Interpretation.WidgetList --outfile ./docs/WidgetList/main.js"
   },
   "devDependencies": {
     "@types/bun": "latest"

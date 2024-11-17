@@ -11,6 +11,7 @@ package:
     - maybe
     - prelude
     - transformers
+    - variant
   test:
     main: Test.Main
     dependencies: []

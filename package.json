@@ -8,7 +8,8 @@
     "serve": "bun --hot run index.ts",
     "example.Cli": "bun spago run -m Halogen.Interaction.Interpretation.Cli",
     "example.WidgetSingle": "spago bundle --module Halogen.Interaction.Interpretation.WidgetSingle --outfile ./docs/WidgetSingle/main.js",
-    "example.WidgetList": "spago bundle --module Halogen.Interaction.Interpretation.WidgetList --outfile ./docs/WidgetList/main.js"
+    "example.WidgetList": "spago bundle --module Halogen.Interaction.Interpretation.WidgetList --outfile ./docs/WidgetList/main.js",
+    "example.PointAndClickAdventure": "spago bundle --module Halogen.Interaction.Interpretation.PointAndClickAdventure --outfile ./docs/PointAndClickAdventure/main.js"
   },
   "devDependencies": {
     "@types/bun": "latest"

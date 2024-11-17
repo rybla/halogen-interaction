@@ -7,7 +7,8 @@
     "bundle": "spago bundle --module Main --outfile ./dist/main.js",
     "serve": "bun --hot run index.ts",
     "example.Cli": "bun spago run -m Halogen.Interaction.Interpretation.Cli",
-    "example.SimpleWidget": "spago bundle --module Halogen.Interaction.Interpretation.SimpleWidget --outfile ./dist/SimpleWidget/main.js"
+    "example.WidgetSingle": "spago bundle --module Halogen.Interaction.Interpretation.WidgetSingle --outfile ./dist/WidgetSingle/main.js",
+    "example.WidgetList": "spago bundle --module Halogen.Interaction.Interpretation.WidgetList --outfile ./dist/WidgetList/main.js"
   },
   "devDependencies": {
     "@types/bun": "latest"

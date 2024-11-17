@@ -1,0 +1,25 @@
+.widgets {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5em;
+}
+
+.widget {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  padding: 0.5em;
+  box-shadow: 0 0 0 1px black;
+}
+
+.widget.active {
+  background-color: lightblue;
+  transition-property: background-color;
+  transition-duration: 1s;
+}
+
+.widget {
+  background-color: white;
+  transition-property: background-color;
+  transition-duration: 1s;
+}

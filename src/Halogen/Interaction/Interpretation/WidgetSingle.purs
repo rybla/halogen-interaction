@@ -1,4 +1,4 @@
-module Halogen.Interaction.Interpretation.SimpleWidget where
+module Halogen.Interaction.Interpretation.WidgetSingle where
 
 import Prelude
 

@@ -45,6 +45,13 @@ prompt msg = InteractionT $ liftF $ Interact $ Prompt msg pure
 print :: forall m. Applicative m => String -> InteractionT F m Unit
 print msg = InteractionT $ liftF $ Interact $ Print msg pure
 
+start :: forall m. Applicative m => InteractionT F m Unit
+start = do
+  name <- prompt "name: "
+  print $ "greetings, " <> name
+  color <- prompt "favorite color: "
+  print $ name <> "'s favorite color is " <> color
+
 --------------------------------------------------------------------------------
 -- run
 --------------------------------------------------------------------------------
@@ -199,10 +206,4 @@ appComponent = mkComponent { initialState, eval, render }
 
 main :: Effect Unit
 main = HA.runHalogenAff (HVD.runUI appComponent { start } =<< HA.awaitBody)
-  where
-  start = do
-    name <- prompt "name: "
-    print $ "greetings, " <> name
-    color <- prompt "favorite color: "
-    print $ name <> "'s favorite color is " <> color
 

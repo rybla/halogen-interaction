@@ -14,4 +14,12 @@
 
 .widget.active {
   background-color: lightblue;
+  transition-property: background-color;
+  transition-duration: 1s;
+}
+
+.widget {
+  background-color: white;
+  transition-property: background-color;
+  transition-duration: 1s;
 }

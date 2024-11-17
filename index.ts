@@ -13,7 +13,7 @@ const server = Bun.serve({
     var path = new URL(req.url).pathname;
     if (path.endsWith("/")) path = `${path}index.html`;
     log(`GET ${path}`);
-    const file = Bun.file(`./dist${path}`);
+    const file = Bun.file(`./docs${path}`);
     if (await file.exists()) {
       const fileType = getFileType(path);
       switch (fileType) {
